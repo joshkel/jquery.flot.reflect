@@ -20,24 +20,19 @@
 
     function reflectDataY(data) {
         var i;
-        for (i = data.length - 1; i >= 0; i--) {
-            data.push([data[i][0], data[i][1] * -1.0]);
+        // TODO: Flot docs say to look at datapoints.pointsize, instead of
+        // assuming 2, but this works for the plot formats we use.
+        for (i = data.length - 2; i >= 0; i -= 2) {
+            data.push(data[i]);
+            data.push(data[i + 1] * -1.0);
         }
-    }
-
-    function reflectAllData(all_data) {
-        var i;
-        for (i = 0; i < all_data.length; i++) {
-            if (all_data[i].reflectY) {
-                reflectDataY(all_data[i].data);
-            }
-        }
-        return all_data;
     }
 
     function init(plot) {
-        plot.hooks.draw.push(function(plot, newCtx) {
-            plot.setData(reflectAllData(plot.getData()));
+        plot.hooks.processDatapoints.push(function(plot, series, datapoints) {
+            if (series.reflectY) {
+                reflectDataY(datapoints.points);
+            }
         });
     }
 
