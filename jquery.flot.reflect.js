@@ -3,33 +3,36 @@
  * Copyright (c) 2016 Windrock, Inc.
  * Licensed under the MIT License.
  *
- * - Reflects data.  Currently, only reflecting (negating) the Y value is supported.
+ * - Reflects data by extending data series with mirrored X and/or Y values.
  * - Reflected portion is appended to current data so Flot won't treat the reflection as another line.
  */
 (function($) {
     var options = {
         data: {
+            reflectX: false,
             reflectY: false
         }
     };
 
-    function reflectDataY(data) {
+    function reflectDataY(data, pointsize, reflectX, reflectY) {
         var i,
             loopTo = data.length;
-        // TODO: Flot docs say to look at datapoints.pointsize, instead of
-        // assuming 2, but this works for the plot formats we use.
-        data.push(null);
-        data.push(null);
-        for (i = 0; i < loopTo; i +=2 ) {
-            data.push(data[i]);
-            data.push(data[i + 1] * -1.0);
+        for (i = 0; i < pointsize; i++) {
+            data.push(null);
+        }
+        for (i = 0; i < loopTo; i++) {
+            if ((i % pointsize == 0 && reflectX) || (i % pointsize == 1 && reflectY)) {
+                data.push(data[i] * -1.0);
+            } else {
+                data.push(data[i]);
+            }
         }
     }
 
     function init(plot) {
         plot.hooks.processDatapoints.push(function(plot, series, datapoints) {
-            if (series.reflectY) {
-                reflectDataY(datapoints.points);
+            if (series.reflectX || series.reflectY) {
+                reflectDataY(datapoints.points, datapoints.pointsize, series.reflectX, series.reflectY);
             }
         });
     }
@@ -38,7 +41,7 @@
         init: init,
         options: options,
         name: 'reflect',
-        version: '1.0'
+        version: '1.1'
     });
 
 })(jQuery);
